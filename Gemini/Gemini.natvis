@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+
+	<Type Name="gem::TBuffer&lt;*&gt;">
+		<DisplayString>length = {mLength}</DisplayString>
+		<Expand>
+			<IndexListItems>
+				<Size>mLength</Size>
+				<ValueNode>mData[$i]</ValueNode>
+			</IndexListItems>
+		</Expand>
+	</Type>
+
+	<Type Name="gem::TMatrixStorage&lt;*&gt;" Inheritable="false">
+		<DisplayString>Order = {$T2}</DisplayString>
+	</Type>
+
+	<Type Name="gem::TVector&lt;*&gt;">
+		<DisplayString>shape({mDimensions.mData[0]}x1)</DisplayString>
+		<Expand>
+			<IndexListItems>
+				<Size>mDimensions.mData[0]</Size>
+				<ValueNode>mBuffer.mData[$i]</ValueNode>
+			</IndexListItems>
+		</Expand>
+	</Type>
+
+	<Type Name="gem::TMatrix2D&lt;*&gt;">
+		<DisplayString>shape({mDimensions.mData[0]}x{mDimensions.mData[1]})</DisplayString>
+		<Expand>
+			<CustomListItems>
+				<Variable Name="i" InitialValue="0"/>
+				<Loop>
+					<Break Condition="i == mDimensions.mData[0]"/>
+					<Item>(mBuffer.mData + (i * mDimensions.mData[1])), [mDimensions.mData[1]] na</Item>
+					<Exec>i++</Exec>
+				</Loop>
+			</CustomListItems>
+		</Expand>
+	</Type>
+
+	<Type Name="gem::TMatrix3D&lt;*&gt;">
+		<DisplayString>shape({mDimensions.mData[0]}x{mDimensions.mData[1]}x{mDimensions.mData[2]})</DisplayString>
+		<Expand>
+			<CustomListItems>
+				<Variable Name="i" InitialValue="0"/>
+				<Variable Name="j" InitialValue="0"/>
+				<Loop>
+					<Break Condition="i == mDimensions.mData[0]"/>
+					<Exec>j=0</Exec>
+					<Loop>
+						<Break Condition="j == mDimensions.mData[1]"/>
+						<Item Name="({i},{j})">
+							mBuffer.mData + ((i * mDimensions.mData[1] + j) * mDimensions.mData[2]), [mDimensions.mData[2]] na
+						</Item>
+						<Exec>j++</Exec>
+					</Loop>
+					<Exec>i++</Exec>
+				</Loop>
+			</CustomListItems>
+		</Expand>
+	</Type>
+
+	<Type Name="gem::TMatrix4D&lt;*&gt;">
+		<DisplayString>
+			shape({mDimensions.mData[0]}x{mDimensions.mData[1]}x{mDimensions.mData[2]}x{mDimensions.mData[3]})
+		</DisplayString>
+		<Expand>
+			<CustomListItems>
+				<Variable Name="i" InitialValue="0"/>
+				<Variable Name="j" InitialValue="0"/>
+				<Variable Name="k" InitialValue="0"/>
+				<Loop>
+					<Break Condition="i == mDimensions.mData[0]"/>
+					<Exec>j = 0</Exec>
+					<Loop>
+						<Break Condition="j == mDimensions.mData[1]"/>
+						<Exec>k = 0</Exec>
+						<Loop>
+							<Break Condition="k == mDimensions.mData[2]"/>
+							<Item Name="({i},{j},{k})">
+								mBuffer.mData + (((((i * mDimensions.mData[1]) + j) * mDimensions.mData[2]) + k) * mDimensions.mData[3]), [mDimensions.mData[3]] na
+							</Item>
+							<Exec>k++</Exec>
+						</Loop>
+						<Exec>j++</Exec>
+					</Loop>
+					<Exec>i++</Exec>
+				</Loop>
+			</CustomListItems>
+		</Expand>
+	</Type>
+
+</AutoVisualizer>
