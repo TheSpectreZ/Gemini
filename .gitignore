@@ -1,0 +1,7 @@
+﻿/.vs
+/bin
+
+*.vcxproj
+*.filters
+*.user
+*.sln
