@@ -87,75 +87,108 @@ namespace gem
 			memset(mData, 0, size());
 		}
 
-		T&		 operator[](u64 Index)		 { return mData[Index]; }
-		const T& operator[](u64 Index) const { return mData[Index]; }
+		T& operator[](u64 Index)		 
+		{ 
+			GEM_ASSERT(Index < mLength, "Buffer Index out of Bounds");
+			return mData[Index]; 
+		}
+
+		const T& operator[](u64 Index) const 
+		{
+			GEM_ASSERT(Index < mLength, "Buffer Index out of Bounds");
+			return mData[Index]; 
+		}
 
 		T*		 data()			{ return mData; }
 		const T* data()   const { return mData; }
 
 		u64		 length() const { return mLength; }
 		u64		 size()   const { return mLength * sizeof(T); }
+	};
 
-		void dump()
+	class TensorShape
+	{
+		TBuffer<u32> mDimensions;
+	public:
+		TensorShape() = default;
+		~TensorShape() = default;
+
+		TensorShape(const std::initializer_list<u32>& dimensions)
+			:mDimensions(dimensions) {}
+
+		u64 length() const { return mDimensions.length(); }
+
+		u32 operator[](u64 Index) const { return mDimensions[Index]; }
+
+		bool operator ==(const TensorShape& other) const
 		{
-			println("Buffer dump");
-			for(u64 i = 0; i < mLength; i++)
+			if (length() != other.length())
+				return false;
+			
+			for (u64 Iter = 0; Iter < length(); Iter++)
 			{
-				println(mData[i]);
+				if (mDimensions[Iter] != other.mDimensions[Iter])
+					return false;
 			}
-			println("");
+
+			return true;
+		}
+
+		bool operator != (const TensorShape& other) const 
+		{
+			return !operator==(other);
 		}
 	};
 
 	template<CStorableType DataType, u32 Order>
-	class TMatrixStorage
+	class TTensorStorage
 	{
+	protected:
 		const u32 MatrixOrder = Order;
+		TensorShape mShape;
 
 		TBuffer<DataType> mBuffer;
-
-		TBuffer<u32> mDimensions;
 		TBuffer<u64> mStrides;
 	public:
-		TMatrixStorage() = default;
-		virtual ~TMatrixStorage() = default;
+		TTensorStorage() = default;
+		virtual ~TTensorStorage() = default;
 
-		TMatrixStorage(const TMatrixStorage& other)
+		TTensorStorage(const TTensorStorage& other)
 		{
 			*this = other;
 		}
 		
-		TMatrixStorage& operator=(const TMatrixStorage& other)
+		TTensorStorage& operator=(const TTensorStorage& other)
 		{
 			mBuffer = other.mBuffer;
-			mDimensions = other.mDimensions;
+			mShape = other.mShape;
 			mStrides = other.mStrides;
 		}
 
-		TMatrixStorage(TMatrixStorage&& other)
+		TTensorStorage(TTensorStorage&& other)
 		{
 			*this = std::move(other);
 		}
 		
-		TMatrixStorage& operator=(TMatrixStorage&& other)
+		TTensorStorage& operator=(TTensorStorage&& other)
 		{
 			mBuffer = std::move(other.mBuffer);
-			mDimensions = std::move(other.mDimensions);
+			mShape = std::move(other.mShape);
 			mStrides = std::move(other.mStrides);
 		}
 
 		template<typename... T> requires ((sizeof...(T) == Order) && (std::is_same_v<T, u32> && ...))
 		void reset(T... dimensions)
 		{
-			mDimensions = { dimensions... };
+			mShape = { dimensions... };
 			
-			mStrides.reset(mDimensions.length());
+			mStrides.reset(mShape.length());
 			
 			u64 stride = 1;
-			for (i64 Iter = mDimensions.length() - 1; Iter >= 0; Iter--)
+			for (i64 Iter = mShape.length() - 1; Iter >= 0; Iter--)
 			{
 				mStrides[Iter] = stride;
-				stride *= mDimensions[Iter];
+				stride *= mShape[Iter];
 			}
 
 			mBuffer.reset(stride);
@@ -172,6 +205,18 @@ namespace gem
 
 			return mBuffer[Index];
 		}
+		
+		template<typename... T> requires ((sizeof...(T) == Order) && (std::is_same_v<T, u32> && ...))
+		const DataType& at(T... dimensions) const 
+		{
+			u32 dims[] = { dimensions... };
+
+			u64 Index = 0;
+			for (u32 Iter = 0; Iter < Order; Iter++)
+				Index = Index + dims[Iter] * mStrides[Iter];
+
+			return mBuffer[Index];
+		}
 
 		DataType* data() { return mBuffer.data(); }
 		const DataType* data() const { return mBuffer.data(); }
@@ -179,12 +224,10 @@ namespace gem
 		u64 size()	 const { return mBuffer.size()	; }
 		u64 length() const { return mBuffer.length(); }
 		
-		TBuffer<u32> dimension() const { return mDimensions; }
-		TBuffer<u64> strides() const { return mStrides; }
-
-		void dump()
-		{
-			mBuffer.dump();
-		}
+		const TensorShape& shape() const { return mShape; }
+		const TBuffer<u64>& strides() const { return mStrides; }
 	};
+
+	template<template<typename, u32> typename T, typename DataType, u32 Order>
+	concept CStorageContainer = CStorableType<DataType> && std::derived_from<T<DataType, Order>, TTensorStorage<DataType, Order>>;
 }

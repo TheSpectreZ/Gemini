@@ -4,17 +4,17 @@
 namespace gem
 {
 	template<CStorableType DataType>
-	class TMatrix3D : public TMatrixStorage<DataType, 3>
+	class TTensor3 : public TTensorStorage<DataType, 3>
 	{
-		using parent_class = TMatrixStorage<DataType, 3>;
+		using parent_class = TTensorStorage<DataType, 3>;
 	public:
-		TMatrix3D() = default;
-		TMatrix3D(u32 depth, u32 row, u32 col) { parent_class::reset(depth, row, col); }
-		TMatrix3D(const NestedInitializerList<DataType, 3>::type& list) { *this = list; }
+		TTensor3() = default;
+		TTensor3(u32 depth, u32 row, u32 col) { parent_class::reset(depth, row, col); }
+		TTensor3(const NestedInitializerList<DataType, 3>::type& list) { *this = list; }
 
-		~TMatrix3D() override = default;
+		~TTensor3() override = default;
 
-		TMatrix3D& operator=(const NestedInitializerList<DataType, 3>::type& list)
+		TTensor3& operator=(const NestedInitializerList<DataType, 3>::type& list)
 		{
 			auto& level1 = list;
 			auto& level2 = *level1.begin();
@@ -47,17 +47,17 @@ namespace gem
 	};
 
 	template<CStorableType DataType>
-	class TMatrix4D : public TMatrixStorage<DataType, 4>
+	class TTensor4 : public TTensorStorage<DataType, 4>
 	{
-		using parent_class = TMatrixStorage<DataType, 4>;
+		using parent_class = TTensorStorage<DataType, 4>;
 	public:
-		TMatrix4D() = default;
-		TMatrix4D(u32 d1, u32 d2, u32 d3, u32 d4) { parent_class::reset(d1, d2, d3, d4); }
-		TMatrix4D(const NestedInitializerList<DataType, 4>::type& list) { *this = list; }
+		TTensor4() = default;
+		TTensor4(u32 d1, u32 d2, u32 d3, u32 d4) { parent_class::reset(d1, d2, d3, d4); }
+		TTensor4(const NestedInitializerList<DataType, 4>::type& list) { *this = list; }
 
-		~TMatrix4D() override = default;
+		~TTensor4() override = default;
 
-		TMatrix4D& operator=(const NestedInitializerList<DataType, 4>::type& list)
+		TTensor4& operator=(const NestedInitializerList<DataType, 4>::type& list)
 		{
 			auto& level1 = list;
 			auto& level2 = *level1.begin();
@@ -96,9 +96,4 @@ namespace gem
 		}
 	};
 
-	using Tensor3f = TMatrix3D<f32>;
-	using Tensor3d = TMatrix3D<f64>;
-
-	using Tensor4f = TMatrix4D<f32>;
-	using Tensor4d = TMatrix4D<f64>;
 }
